@@ -59,5 +59,5 @@ setup(
     package_dir={'': 'src'},  # Optional
     packages=find_packages(where='src'),  # Required
     python_requires='>=3.6, <4',
-    install_requires=['numpy'],
+    install_requires=['numpy', 'scipy'],
 )
