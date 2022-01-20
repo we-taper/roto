@@ -1,3 +1,4 @@
+from textwrap import shorten
 import unittest
 
 import numpy as np
@@ -45,6 +46,7 @@ class TestRotoSolver(unittest.TestCase):
         print('np.asarray(should_be):\n', repr(np.asarray(func.arg_log)))
         self.assertTrue(all(np.allclose(should_be[i], item) for i, item in enumerate(func.arg_log)))
 
+
     def test_the_function_has_been_correctly_called_with_modified_param(self):
         func = _Helper(n_param=3)
         np.random.seed(1)  # seed it such that when not update_sequentially, the behaviour is predictable.
@@ -73,6 +75,8 @@ class TestRotoSolver(unittest.TestCase):
         size = 20
         a, b, c, k = [np.random.rand(size) for _ in range(4)]
 
+        # Note: although the reason being unclear, the fact that RotoSolver can succesfully
+        # minimise this function below might be due to k is unifomly distributed in [0, 1)
         def func(var):
             return np.sum(a * np.sin(k * var + b) + c)
 
@@ -88,6 +92,23 @@ class TestRotoSolver(unittest.TestCase):
         self.assertTrue(np.allclose(var, should_be))
         self.assertTrue(np.allclose(func(var), 0.1675518937516567))
 
+    def test_suc_minimised_diff_period(self):
+        rng = np.random.default_rng(seed=540)
+        size = rng.integers(low=5, high=10)
+        a, b = [rng.uniform(low=-5, high=5, size=size) for _ in range(2)]
+        should_be = -np.product(np.abs(a))  # theoretical minimum
+        
+        k = 2.0
+        def func(var):
+            return np.product(a * np.sin(k * var + b))
+        
+        x0 = rng.uniform(low=0, high=2*np.pi, size=size)
+
+        result = RotoSolver(n_period=k).minimise(func, x0, max_iteration=100)
+        
+        assert not np.allclose(func(x0), func(result), atol=0.1)
+        assert np.allclose(func(result), should_be, atol=1e-8)
+
 
 if __name__ == '__main__':
-    TestRotoSolver().test_the_function_has_been_correctly_called_with_modified_param()
+    TestRotoSolver().test_the_function_has_been_correctly_called_in_normal_setup()
