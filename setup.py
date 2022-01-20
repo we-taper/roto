@@ -17,7 +17,7 @@ long_description = (here / 'README.md').read_text(encoding='utf-8')
 
 setup(
     name='roto',
-    version='1.0.0',
+    version='1.1.0',
 
     # This is an optional longer description of your project that represents
     # the body of text which users will see when they visit PyPI.
@@ -59,5 +59,5 @@ setup(
     package_dir={'': 'src'},  # Optional
     packages=find_packages(where='src'),  # Required
     python_requires='>=3.6, <4',
-    install_requires=['numpy'],
+    install_requires=['numpy', 'scipy'],
 )
