@@ -9,12 +9,14 @@ class _Helper:
 
     def __init__(self, n_param=3):
         self.kwargs_log = []
-        self.args_log = []
+        self.arg_log = []
         self.n_param = n_param
 
     def __call__(self, *args, **kwargs):
         self.kwargs_log.append(kwargs)
-        self.args_log.append(args)
+        if len(args) != 1:
+            raise ValueError(args)
+        self.arg_log.append(np.copy(args[0]))
         return np.sum(args[0]).ravel()
 
 
@@ -29,20 +31,19 @@ class TestRotoSolver(unittest.TestCase):
         roto.run_one_iteration(func=func, var=var, extra_kwargs=kwargs)
         self.assertTrue(all(k == kwargs for k in func.kwargs_log))
 
-        should_be = [
-            np.array([-1.57079633, 1., 2.]),
-            np.array([-1.57079633, -0.57079633, 0.42920367]),
-            np.array([1.57079633, 1., 2.]),
-            np.array([-1.57079633, -0.57079633, 2.]),
-            np.array([-1.57079633, -0.57079633, 0.42920367]),
-            np.array([-1.57079633, 2.57079633, 2.]),
-            np.array([-1.57079633, -0.57079633, 0.42920367]),
-            np.array([-1.57079633, -0.57079633, 0.42920367]),
-            np.array([-1.57079633, -0.57079633, 3.57079633])
-        ]
-
-        self.assertTrue(all(len(item) == 1 for item in func.args_log))
-        self.assertTrue(all(np.allclose(should_be[i], item[0]) for i, item in enumerate(func.args_log)))
+        should_be = np.array(
+            [[-1.57079633,  1.        ,  2.        ],
+            [ 0.        ,  1.        ,  2.        ],
+            [ 1.57079633,  1.        ,  2.        ],
+            [-1.57079633, -0.57079633,  2.        ],
+            [-1.57079633,  1.        ,  2.        ],
+            [-1.57079633,  2.57079633,  2.        ],
+            [-1.57079633, -0.57079633,  0.42920367],
+            [-1.57079633, -0.57079633,  2.        ],
+            [-1.57079633, -0.57079633,  3.57079633]]
+        )
+        print('np.asarray(should_be):\n', repr(np.asarray(func.arg_log)))
+        self.assertTrue(all(np.allclose(should_be[i], item) for i, item in enumerate(func.arg_log)))
 
     def test_the_function_has_been_correctly_called_with_modified_param(self):
         func = _Helper(n_param=3)
@@ -54,20 +55,18 @@ class TestRotoSolver(unittest.TestCase):
         roto.run_one_iteration(func=func, var=var, extra_kwargs=kwargs)
         self.assertTrue(all(k == kwargs for k in func.kwargs_log))
 
-        should_be = [
-            np.array([-1.57079633, 1., 2.]),
-            np.array([-1.57079633, -1.57079633, -1.57079633]),
-            np.array([1.57079633, 1., 2.]),
-            np.array([-1.57079633, 1., -1.57079633]),
-            np.array([-1.57079633, -1.57079633, -1.57079633]),
-            np.array([-1.57079633, 1., 1.57079633]),
-            np.array([-1.57079633, -1.57079633, -1.57079633]),
-            np.array([-1.57079633, -1.57079633, -1.57079633]),
-            np.array([-1.57079633, 1.57079633, -1.57079633])
-        ]
-
-        self.assertTrue(all(len(item) == 1 for item in func.args_log))
-        self.assertTrue(all(np.allclose(should_be[i], item[0]) for i, item in enumerate(func.args_log)))
+        should_be = np.array(
+            [[-1.57079633,  1.        ,  2.        ],
+            [ 0.        ,  1.        ,  2.        ],
+            [ 1.57079633,  1.        ,  2.        ],
+            [-1.57079633,  1.        , -1.57079633],
+            [-1.57079633,  1.        ,  0.        ],
+            [-1.57079633,  1.        ,  1.57079633],
+            [-1.57079633, -1.57079633, -1.57079633],
+            [-1.57079633,  0.        , -1.57079633],
+            [-1.57079633,  1.57079633, -1.57079633]]
+        )
+        self.assertTrue(all(np.allclose(should_be[i], item) for i, item in enumerate(func.arg_log)))
 
     def test_suc_minimised(self):
         np.random.seed(10)
@@ -88,3 +87,7 @@ class TestRotoSolver(unittest.TestCase):
                               -1.91470807, -3.14380248, -1.84227176, -5.26236014])
         self.assertTrue(np.allclose(var, should_be))
         self.assertTrue(np.allclose(func(var), 0.1675518937516567))
+
+
+if __name__ == '__main__':
+    TestRotoSolver().test_the_function_has_been_correctly_called_with_modified_param()
