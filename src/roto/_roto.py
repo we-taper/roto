@@ -74,7 +74,9 @@ class RotoSolver:
             )
         return variable
 
-    def run_one_iteration(self, func: Callable, var: np.ndarray, extra_kwargs=None):
+    def run_one_iteration(
+        self, func: Callable, var: np.ndarray, extra_kwargs=None
+    ):
         """
         Performs one iteration of this solver on the function `func`, starts with the variable `var`.
 
